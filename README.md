@@ -61,8 +61,8 @@ xattr -cr "/Applications/Legacy Scrobbler.app"
 - Node.js installed on your system.
 
 ### Building Legacy Scrobbler
-1. Clone the repository: `git clone https://github.com/wistoff/legacy-scrobbler.git`
-2. Navigate to the project directory: `cd legacy-scrobbler`
+1. Clone the repository: `git clone https://github.com/AZ3Chan/legacy-scrobbler-ListenBrainz.git`
+2. Navigate to the project directory: `cd legacy-scrobbler-ListenBrainz`
 3. Install dependencies: `npm install`
 4. Run the application in development mode: `npm run start`
 5. To build the application for distribution: `npm run make`
