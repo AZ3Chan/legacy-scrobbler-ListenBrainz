@@ -18,7 +18,7 @@
 
 Legacy Scrobbler moddified by claude (I don't know how to code Js) is designed to bridge the gap between legacy hardware, and the music platform ListenBrainz. It enables users to sync their listening history from offline devices to their Last.fm profile, preserving their music legacy in the digital era.
 
-**Download**: [Legacy Scrobbler Releases](https://github.com/wistoff/legacy-scrobbler/releases)
+**Download**: Sorry none for now, compile it from this branch I guess.
 
 ## How to Use
 
