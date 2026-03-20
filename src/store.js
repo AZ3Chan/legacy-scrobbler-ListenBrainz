@@ -15,14 +15,10 @@ const defaults = {
   syncLedger: {},
   lastSyncAt: 0,
   devicePath: '/Volumes/iPod',
-  lastFm: {
+  listenBrainz: {
     loggedIn: false,
-    apiKey: '',
-    userToken: '',
-    sessionKey: '',
-    username: '',
-    profilePicture: '',
-    registered: ''
+    token: '',
+    username: ''
   },
   failedScrobbleQueue: []
 }

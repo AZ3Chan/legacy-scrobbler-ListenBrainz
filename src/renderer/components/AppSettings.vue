@@ -5,15 +5,10 @@
       <h1>Settings</h1>
     </div>
     <div class="content">
-      <div v-if="preferences.lastFm.loggedIn" class="user">
-        <div class="picture">
-          <img :src="preferences.lastFm.profilePicture" alt="" />
-        </div>
+      <div v-if="preferences.listenBrainz.loggedIn" class="user">
         <div class="account">
-          <p class="username">{{ preferences.lastFm.username }}</p>
-          <p class="usermeta">
-            scrobbling since {{ formatDate(preferences.lastFm.registered) }}
-          </p>
+          <p class="username">{{ preferences.listenBrainz.username }}</p>
+          <p class="usermeta">scrobbling to ListenBrainz</p>
         </div>
       </div>
       <div class="settings-group">
@@ -167,7 +162,7 @@
       </div>
 
       <div
-        v-if="preferences.lastFm.loggedIn"
+        v-if="preferences.listenBrainz.loggedIn"
         class="settings-button"
         @click="signOut()"
       >
@@ -188,11 +183,10 @@
 <script setup>
 import ArrowRight from '../assets/icons/a-right.svg'
 import { onMounted } from 'vue'
-
 import { useStates } from '../composables/useStates.js'
-const { showAboutPopup, showAccessPopup } = useStates()
-
 import { usePrefs } from '../composables/usePrefs.js'
+
+const { showAboutPopup, showAccessPopup } = useStates()
 const { preferences, setPreferences } = usePrefs()
 
 const emit = defineEmits(['closeSettings'])
@@ -207,12 +201,6 @@ const openDialog = async () => {
   console.log(preferences.devicePath)
 }
 
-const formatDate = unixtime => {
-  const date = new Date(unixtime * 1000)
-  const options = { day: '2-digit', month: 'short', year: 'numeric' }
-  return new Intl.DateTimeFormat('en-UK', options).format(date)
-}
-
 const resetPrefs = async () => {
   setPreferences('resetConfig')
   closeSettings()
@@ -220,13 +208,11 @@ const resetPrefs = async () => {
 }
 
 async function signOut () {
-  await setPreferences('singleConfig', 'lastFm', {
+  await window.ipc.listenbrainzLogout()
+  await setPreferences('singleConfig', 'listenBrainz', {
     loggedIn: false,
-    apiKey: '',
-    userToken: '',
-    sessionKey: '',
-    username: '',
-    registered: ''
+    token: '',
+    username: ''
   })
   closeSettings()
   showAccessPopup()

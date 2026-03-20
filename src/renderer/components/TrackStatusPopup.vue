@@ -23,20 +23,15 @@
   </template>
   
   <script setup>
-  
+  import { useTrackStatuses } from '../composables/useTrackStatuses.js'
+  import { useTracklist } from '../composables/useTracklist.js'
+
   const props = defineProps({
     tracks: Array
   })
-  import { useTrackStatuses } from '../composables/useTrackStatuses.js'
 
   const { clearTrackStatuses } = useTrackStatuses()
-
-  import { useTracklist } from '../composables/useTracklist.js'
-
-  const {
-    clearTracklist
-  } = useTracklist()
-  
+  const { clearTracklist } = useTracklist()
   
   const closePopup = async () => {
     clearTrackStatuses()

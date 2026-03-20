@@ -10,8 +10,8 @@ const POPUP_STATES = {
   ACCESS: {
     title: 'Welcome to Legacy Scrobbler',
     message:
-      "You're just a few steps away from transferring your iPod listening history to your Last.fm profile. To use the Scrobbler, simply grant Legacy Scrobbler permissions to access your Last.fm profile.",
-    button: 'Allow Access'
+      "Connect your ListenBrainz account to start scrobbling your iPod listening history. You'll need your User Token from <b>listenbrainz.org/settings</b>.",
+    button: 'Connect'
   },
   ABOUT: {
     title: 'About Legacy Scrobbler',
@@ -22,16 +22,16 @@ const POPUP_STATES = {
     Legacy Scrobbler utilizes icons from Iconoir under the MIT License.<br/>
     Legacy Scrobbler is distributed under the GPL v3 License.<br/><br/>
     <b>Disclaimer:</b><br/>
-    Legacy Scrobbler is a third-party tool developed independently. Last.fm and iPod are registered trademarks of their respective owners. Legacy Scrobbler is not endorsed by or affiliated with Last.fm or Apple Inc.<br/><br/>
+    Legacy Scrobbler is a third-party tool developed independently. ListenBrainz and iPod are trademarks of their respective owners. Legacy Scrobbler is not endorsed by or affiliated with the MetaBrainz Foundation or Apple Inc.<br/><br/>
     www.legacyscrobbler.software<br/><br/>
     2024 Kjell Wistoff<br/></p>
 `,
     button: 'Close'
   },
   CONNECT: {
-    title: 'Connect to lastFm',
+    title: 'Connect to ListenBrainz',
     message:
-      'Confirm that you successfully connected to Last.fm. If you have granted access to your profile using your Browser, you can now login to Last.fm.',
+      'Paste your User Token from <b>listenbrainz.org/settings</b> into the field below, then click Login.',
     button: 'Login'
   }
 }

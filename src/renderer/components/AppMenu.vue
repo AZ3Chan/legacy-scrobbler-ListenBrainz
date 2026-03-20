@@ -27,7 +27,7 @@
             deviceState.value === 'not-connected' ||
             isUploading ||
             isEjecting ||
-            preferences.lastFm.apiKey === ''
+            !preferences.listenBrainz?.loggedIn
         }"
         alt="Refresh"
       />
@@ -48,12 +48,12 @@
     <img
       :src="uploadIcon"
       alt="Upload"
-      title="Upload selected plays to Last.fm"
+      title="Upload selected plays to ListenBrainz"
       @click="scrobbleNewTracks"
       :class="{
         disabled:
           tracklist.length === 0 ||
-          !preferences.lastFm.loggedIn ||
+          !preferences.listenBrainz?.loggedIn ||
           selectedTracklist.length === 0 ||
           isEjecting
       }"
@@ -83,17 +83,14 @@ import ejectIcon from '../assets/icons/eject.svg'
 import sunIcon from '../assets/icons/sun.svg'
 import moonIcon from '../assets/icons/moon.svg'
 import { ref, watch } from 'vue'
-
 import { usePrefs } from '../composables/usePrefs.js'
-const { preferences } = usePrefs()
-
 import { useStates } from '../composables/useStates.js'
-const { deviceState } = useStates()
-
 import { useTracklist } from '../composables/useTracklist.js'
-const { tracklist, selectedTracklist } = useTracklist()
-
 import { useTheme } from '../composables/useTheme.js'
+
+const { preferences } = usePrefs()
+const { deviceState } = useStates()
+const { tracklist, selectedTracklist } = useTracklist()
 const { isDarkMode, toggleTheme } = useTheme()
 
 // Define props
@@ -130,7 +127,7 @@ function loadNewTracks () {
   isRefreshing.value = true 
   if (
     deviceState.value !== 'not-connected' &&
-    preferences.lastFm.apiKey !== ''
+    preferences.listenBrainz?.loggedIn
   ) {
     emit('getNewTracks')
   }
@@ -156,7 +153,7 @@ function clearPlayCounts () {
 function scrobbleNewTracks () {
   if (
     tracklist.length !== 0 &&
-    preferences.lastFm.apiKey !== '' &&
+    preferences.listenBrainz?.loggedIn &&
     isEjecting.value === false
   ) {
     emit('scrobbleNewTracks')

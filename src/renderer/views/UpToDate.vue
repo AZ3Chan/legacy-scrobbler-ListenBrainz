@@ -12,8 +12,8 @@
 <script setup>
 import { computed } from 'vue'
 import { useTracklist } from '../composables/useTracklist.js'
-const { scanSummary } = useTracklist()
 import ipod_uptodate from '../assets/icons/ipod_uptodate.svg'
 
+const { scanSummary } = useTracklist()
 const alreadySyncedPlays = computed(() => scanSummary.alreadySyncedPlays)
 </script>

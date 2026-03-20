@@ -14,4 +14,9 @@ contextBridge.exposeInMainWorld('ipc', {
   writeConfig: (action, key, value) =>
     ipcRenderer.invoke('write:config', { action, key, value }),
   openFile: () => ipcRenderer.invoke('dialog:openFile'),
+  // ListenBrainz
+  listenbrainzLogin: (token) => ipcRenderer.invoke('listenbrainz:login', token),
+  listenbrainzLogout: () => ipcRenderer.invoke('listenbrainz:logout'),
+  listenbrainzIsAuthenticated: () => ipcRenderer.invoke('listenbrainz:isAuthenticated'),
+  listenbrainzScrobble: (tracks) => ipcRenderer.invoke('listenbrainz:scrobble', tracks),
 })

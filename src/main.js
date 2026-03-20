@@ -16,6 +16,7 @@ const fs = require('fs')
 const { execFile, spawn } = require('child_process')
 const { existsSync } = fs
 import { getRecentTracks } from './renderer/utils/readDB.js'
+import { authenticate, isAuthenticated, logout, scrobbleTracks as lbScrobbleTracks, saveToken } from './listenbrainz.js'
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // Inlined from electron-squirrel-startup to avoid bundling issues
@@ -384,6 +385,39 @@ app.on('ready', async () => {
   if (!gotSingleInstanceLock) {
     return
   }
+
+  // Restore ListenBrainz token from persisted config
+  const savedToken = store.getConfig('listenBrainz')?.token
+  if (savedToken) {
+    saveToken(savedToken)
+  }
+  ipcMain.handle('listenbrainz:login', async (_event, token) => {
+    try {
+      const username = await authenticate(token)
+      return { success: true, username }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  })
+
+  ipcMain.handle('listenbrainz:logout', () => {
+    logout()
+    return { success: true }
+  })
+
+  ipcMain.handle('listenbrainz:isAuthenticated', () => {
+    return isAuthenticated()
+  })
+
+  ipcMain.handle('listenbrainz:scrobble', async (_event, tracks) => {
+    try {
+      await lbScrobbleTracks(tracks)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err.message }
+    }
+  })
+
   ipcMain.handle('read:file', handleReadFile)
   ipcMain.handle('read:config', handleReadConfig)
   ipcMain.handle('write:config', handleWriteConfig)
@@ -430,7 +464,7 @@ app.on('ready', async () => {
         responseHeaders: {
           ...details.responseHeaders,
           'Content-Security-Policy': [
-            "script-src 'self' https://api.legacyscrobbler.software"
+            "script-src 'self' https://api.legacyscrobbler.software https://api.listenbrainz.org"
           ]
         }
       })

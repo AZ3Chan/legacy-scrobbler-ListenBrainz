@@ -44,9 +44,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useTracklist } from '../composables/useTracklist.js'
-const { scrobbled, lastSync } = useTracklist()
-
 import check_solid from '../assets/icons/check-solid.svg'
+
+const { scrobbled, lastSync } = useTracklist()
 
 const formatPlaytime = playtimeInSeconds => {
   const days = Math.floor(playtimeInSeconds / (3600 * 24))

@@ -90,6 +90,7 @@
 
     <div class="content">
       <component
+        v-if="renderComponent.component"
         :is="renderComponent.component"
         v-bind="renderComponent.props"
       />
@@ -98,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed } from "vue";
+import { ref, onMounted, watch, computed, nextTick } from "vue";
 
 import AppMenu from "./components/AppMenu.vue";
 import AppSettings from "./components/AppSettings.vue";
@@ -116,6 +117,23 @@ import SyncPrompt from "./components/SyncPrompt.vue";
 import FailedQueuePrompt from "./components/FailedQueuePrompt.vue";
 
 import { useStates } from "./composables/useStates.js";
+import { useTracklist } from "./composables/useTracklist.js";
+import { usePrefs } from "./composables/usePrefs.js";
+import { useTrackStatuses } from "./composables/useTrackStatuses.js";
+import { useTheme } from "./composables/useTheme.js";
+import {
+  updateProfile,
+  scrobbleTracks,
+  scrobbleTracksIndividually,
+  login,
+  connectListenBrainz,
+  filterTracksForLedger,
+  countAlreadySyncedPlays,
+  addToFailedQueue,
+  getFailedQueueCount,
+  retryFailedQueue,
+  checkNetworkConnection,
+} from "./utils/listenbrainz.js";
 
 const {
   deviceState,
@@ -127,7 +145,6 @@ const {
   showConnectPopup,
 } = useStates();
 
-import { useTracklist } from "./composables/useTracklist.js";
 const {
   tracklist,
   selectedTracklist,
@@ -143,28 +160,9 @@ const {
   clearTracklist,
 } = useTracklist();
 
-import { usePrefs } from "./composables/usePrefs.js";
 const { preferences, getPreferences, setPreferences } = usePrefs();
-
-import { useTrackStatuses } from "./composables/useTrackStatuses.js";
 const { trackStatuses, addTrackStatus, updateTrackStatus } = useTrackStatuses();
-
-import { useTheme } from "./composables/useTheme.js";
 const { initTheme } = useTheme();
-
-import {
-  updateProfile,
-  scrobbleTracks,
-  scrobbleTracksIndividually,
-  login,
-  connectLastFm,
-  filterTracksForLedger,
-  countAlreadySyncedPlays,
-  addToFailedQueue,
-  getFailedQueueCount,
-  retryFailedQueue,
-  checkNetworkConnection,
-} from "./utils/lastfm.js";
 
 const isLoading = ref(false);
 const isUploading = ref(false);
@@ -505,9 +503,9 @@ const getTracklist = async (forceUpload = false) => {
         hasScanned: hasScanned.value,
         autoUpload: preferences.autoUpload,
       });
-      // if (tracklist.length === 0) {
-      //   processing.value = false
-      // }
+      // Wait for any pending scanProgress IPC events to flush before
+      // switching away from LoadingView — prevents null component crash
+      await nextTick();
       scanProgress.value = null;
       isLoading.value = false;
       // if the autoUpload is enabled, scrobble the new tracks
@@ -528,6 +526,7 @@ const getTracklist = async (forceUpload = false) => {
     showErrorPopup(
       "Error getting Tracks from device. Maybe the Play Count file is corrupted?"
     );
+    await nextTick();
     scanProgress.value = null;
     isLoading.value = false;
     processing.value = false;
@@ -710,7 +709,7 @@ const scrobbleNewTracks = async () => {
   processing.value = true;
   isUploading.value = true;
   const trackCount = selectedTracklist.length;
-  uploadStatus.value = `Sending ${trackCount} track${trackCount !== 1 ? "s" : ""} to Last.fm...`;
+  uploadStatus.value = `Sending ${trackCount} track${trackCount !== 1 ? "s" : ""} to ListenBrainz...`;
   logDebug("scrobbleNewTracks start", { trackCount });
 
   try {
@@ -813,27 +812,23 @@ const scrobbleNewTracks = async () => {
 };
 
 async function checkProfile() {
-  // If user already has a session key, check network before deciding login state
-  const hasExistingSession = preferences.lastFm?.sessionKey;
+  const hasExistingToken = preferences.listenBrainz?.token;
 
   const loginSuccess = await updateProfile();
   if (loginSuccess) {
-    preferences.lastFm.loggedIn = true;
+    preferences.listenBrainz.loggedIn = true;
     console.log("Logged in");
-  } else if (hasExistingSession) {
-    // User was previously logged in but network failed - keep them logged in
-    // They can still see the app, just can't scrobble until network returns
-    preferences.lastFm.loggedIn = true;
+  } else if (hasExistingToken) {
+    preferences.listenBrainz.loggedIn = true;
     console.log("Offline mode - using cached session");
   } else {
-    // No existing session and couldn't connect - need to log in
-    preferences.lastFm.loggedIn = false;
+    preferences.listenBrainz.loggedIn = false;
     showAccessPopup();
   }
 }
 
 async function handleConnect() {
-  const result = await connectLastFm();
+  const result = await connectListenBrainz();
   if (!result.success) {
     showErrorPopup(result.error);
     return;
@@ -842,18 +837,18 @@ async function handleConnect() {
 }
 
 async function handleLogin() {
-  const userToken = preferences.lastFm.userToken;
-  const { status, message } = await login(userToken);
+  const token = preferences.listenBrainz.token;
+  const { status, message } = await login(token);
   console.log(status, message);
   if (status) {
     console.log("Logged in");
-    preferences.lastFm.loggedIn = true;
+    preferences.listenBrainz.loggedIn = true;
     popup.state = false;
     updateProfile();
     settingsMenu.value = true;
   } else {
     showErrorPopup(message);
-    preferences.lastFm.loggedIn = false;
+    preferences.listenBrainz.loggedIn = false;
   }
 }
 
@@ -995,7 +990,9 @@ onMounted(async () => {
 
   if (window.ipc.onScanProgress) {
     window.ipc.onScanProgress((event, progress) => {
-      scanProgress.value = progress;
+      if (isLoading.value) {
+        scanProgress.value = progress;
+      }
     });
   }
 
